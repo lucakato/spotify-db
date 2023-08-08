@@ -1,5 +1,6 @@
 from flask import Flask, request, url_for, session, redirect
 from dotenv import load_dotenv
+from collections import defaultdict
 import spotipy
 import os
 import time
@@ -37,15 +38,18 @@ def getSongs():
     
     sp = spotipy.Spotify(auth=token_info["access_token"])
     
-    listeningHistory = []
+
     #print(sp.current_user_saved_tracks(limit=50)['items'])
     resp = sp.current_user_recently_played(limit=50, after=None, before=None)["items"]
-    # for song in resp:
-    #     artistName = song["track"][1]
-    #     songTitle = song["name"]
-    #     listeningHistory.append((artistName, songTitle))
-    print(resp["tracks"]["artists"]["name"])
-    return resp
+
+    listeningHistory = defaultdict(list)
+    for i in range(len(resp)):
+        curr_song_name = resp[i]["name"]
+        artistsList = resp[i]["artists"]
+        for artist in artistsList:
+            listeningHistory[curr_song_name].append(artist["name"])
+
+    return listeningHistory
 
 # check if access token has expired. If so, get new one
 
